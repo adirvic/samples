@@ -1,0 +1,29 @@
+            List<CustomerCampaign> newList = new ArrayList<>();
+            subCollection.stream()
+                    .collect(Collectors.groupingBy(cc -> Pair.of(cc.getCustomerDocument(), cc.getCampaignId()),
+                            Collectors.summingInt(CustomerCampaign::getUsedTimes)))
+                    .forEach((documentCampaign, usedTimes) -> {
+                        CustomerCampaign customerCampaign = new CustomerCampaign();
+                        customerCampaign.setUsedTimes(usedTimes);
+                        customerCampaign.setCampaignId(documentCampaign.getValue());
+                        customerCampaign.setCustomerDocument(documentCampaign.getKey());
+
+                        newList.add(customerCampaign);
+                    });
+
+
+            List<CustomerCampaign> newList2 = new ArrayList<>();
+            subCollection.stream()
+                    .collect(Collectors.groupingBy(
+                                CustomerCampaign::getCustomerDocument,
+                                Collectors.groupingBy(
+                                        CustomerCampaign::getCampaignId,
+                                        Collectors.summingInt(
+                                                CustomerCampaign::getUsedTimes))))
+                    .entrySet()
+                    .stream()
+                    .flatMap(e1 -> e1.getValue()
+                            .entrySet()
+                            .stream()
+                            .map(e2 -> new CustomerCampaign(e2.getValue(), e2.getKey(), e1.getKey())))
+                    .collect(Collectors.toList());
